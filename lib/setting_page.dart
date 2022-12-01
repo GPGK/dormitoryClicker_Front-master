@@ -79,6 +79,154 @@ class _SettingPageState extends State<SettingPage> {
               child: Column(
                 children: [
                   Expanded(
+                      child: Row(
+                        children: <Widget>[
+                          const Flexible(
+                              flex: 8,
+                              fit: FlexFit.tight,
+                              child: Text("기숙사 설정", textAlign: TextAlign.left,)
+                          ),
+                          Flexible(
+                            fit: FlexFit.tight,
+                            flex: 3,
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: DropdownButton(
+                                items: <String>['오름관', '푸름관'].map((value) {
+                                  return DropdownMenuItem(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                                value: dormFirst,
+                                onChanged: (String? value){
+                                  setState(() {
+                                    dormFirst = value;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12.0),
+                          Flexible(
+                              fit: FlexFit.tight,
+                              flex: 2,
+                              child: Container(
+                                alignment: Alignment.center,
+                                child: DropdownButton(
+                                  items: (dormFirst == "오름관") ?
+                                  <String>['1동', '2동', '3동'].map((value) {
+                                    return DropdownMenuItem(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList() :
+                                  <String>['1동', '2동', '3동', '4동'].map((value) {
+                                    return DropdownMenuItem(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                  value: dormSecond,
+                                  onChanged: (String? value){
+                                    setState(() {
+                                      dormSecond = value;
+                                    });
+                                  },
+                                ),
+                              )
+                          ),
+                        ],
+                      )
+                  ),
+                  Divider(),
+                  Container(
+                    height: 35,
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton(
+                        onPressed: (){
+                          if(dormFirst != null && dormSecond != null){
+                            if(tempDorm != '${dormFirst!} ${dormSecond!}'){
+                              userInfo.putDormitory(tempDorm);
+                              //usersData.changeDormitory(userInfo.getUserId(), tempDorm);
+                            } else if (tempDorm == '${dormFirst!} ${dormSecond!}') {
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      content: const Text("변경 사항이 없습니다"),
+                                      actions: [
+                                        Center(
+                                            child: ElevatedButton(
+                                                onPressed: (){ Navigator.pop(context); },
+                                                child: const Text("확인")
+                                            )
+                                        )
+                                      ],
+                                    );
+                                  }
+                              );
+                              return;
+                            }
+                          } else if (dormFirst == null && dormSecond == null){
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    content: const Text("변경 사항이 없습니다"),
+                                    actions: [
+                                      Center(
+                                          child: ElevatedButton(
+                                              onPressed: (){ Navigator.pop(context); },
+                                              child: const Text("확인")
+                                          )
+                                      )
+                                    ],
+                                  );
+                                }
+                            );
+                            return;
+                          } else {
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    content: const Text("변경 사항이 없습니다"),
+                                    actions: [
+                                      Center(
+                                          child: ElevatedButton(
+                                              onPressed: (){ Navigator.pop(context); },
+                                              child: const Text("확인")
+                                          )
+                                      )
+                                    ],
+                                  );
+                                }
+                            );
+                          }
+
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  content: const Text("설정이 변경되었습니다"),
+                                  actions: [
+                                    Center(
+                                        child: ElevatedButton(
+                                            onPressed: (){ Navigator.pop(context); },
+                                            child: const Text("확인")
+                                        )
+                                    )
+                                  ],
+                                );
+                              }
+                          );
+                          Navigator.pop(context);
+                        },
+                        child: const Text('저장')),
+                  ),
+                  Divider(),
+                  Expanded(
                     //height: 50,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -140,153 +288,6 @@ class _SettingPageState extends State<SettingPage> {
                     ),
                   ),
                   Divider(),
-                  Expanded(
-                    child: Row(
-                      children: <Widget>[
-                        const Flexible(
-                          flex: 8,
-                          fit: FlexFit.tight,
-                          child: Text("기숙사 설정", textAlign: TextAlign.left,)
-                        ),
-                        Flexible(
-                          fit: FlexFit.tight,
-                          flex: 3,
-                          child: Container(
-                            alignment: Alignment.center,
-                            child: DropdownButton(
-                              items: <String>['오름관', '푸름관'].map((value) {
-                                return DropdownMenuItem(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              value: dormFirst,
-                              onChanged: (String? value){
-                                setState(() {
-                                  dormFirst = value;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12.0),
-                        Flexible(
-                          fit: FlexFit.tight,
-                          flex: 2,
-                          child: Container(
-                            alignment: Alignment.center,
-                            child: DropdownButton(
-                              items: (dormFirst == "오름관") ?
-                              <String>['1동', '2동', '3동'].map((value) {
-                                return DropdownMenuItem(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList() :
-                              <String>['1동', '2동', '3동', '4동'].map((value) {
-                                return DropdownMenuItem(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              value: dormSecond,
-                              onChanged: (String? value){
-                                setState(() {
-                                  dormSecond = value;
-                                });
-                              },
-                            ),
-                          )
-                        ),
-                      ],
-                    )
-                  ),
-                  Divider(),
-                  Container(
-                    height: 35,
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                        onPressed: (){
-                          if(dormFirst != null && dormSecond != null){
-                            if(tempDorm != '${dormFirst!} ${dormSecond!}'){
-                              userInfo.putDormitory(tempDorm);
-                              //usersData.changeDormitory(userInfo.getUserId(), tempDorm);
-                            } else if (tempDorm == '${dormFirst!} ${dormSecond!}') {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    content: const Text("변경 사항이 없습니다"),
-                                    actions: [
-                                      Center(
-                                        child: ElevatedButton(
-                                          onPressed: (){ Navigator.pop(context); },
-                                          child: const Text("확인")
-                                        )
-                                      )
-                                    ],
-                                  );
-                                }
-                              );
-                              return;
-                            }
-                          } else if (dormFirst == null && dormSecond == null){
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    content: const Text("변경 사항이 없습니다"),
-                                    actions: [
-                                      Center(
-                                          child: ElevatedButton(
-                                              onPressed: (){ Navigator.pop(context); },
-                                              child: const Text("확인")
-                                          )
-                                      )
-                                    ],
-                                  );
-                                }
-                            );
-                            return;
-                          } else {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  content: const Text("변경 사항이 없습니다"),
-                                  actions: [
-                                    Center(
-                                      child: ElevatedButton(
-                                          onPressed: (){ Navigator.pop(context); },
-                                          child: const Text("확인")
-                                      )
-                                    )
-                                  ],
-                                );
-                              }
-                            );
-                          }
-
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  content: const Text("설정이 변경되었습니다"),
-                                  actions: [
-                                    Center(
-                                        child: ElevatedButton(
-                                            onPressed: (){ Navigator.pop(context); },
-                                            child: const Text("확인")
-                                        )
-                                    )
-                                  ],
-                                );
-                              }
-                          );
-                          Navigator.pop(context);
-                        },
-                        child: const Text('저장')),
-                  ),
                 ],
               ),
             ),

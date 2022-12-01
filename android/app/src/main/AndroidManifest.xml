@@ -16,9 +16,19 @@
         서비스 중지나 포그라운드 제거되지않는 한 알림 해제 불가
        -->
 
+    <!-- url_launcher 를 사용하기 위해 추가됨 -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+            <!--<action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />-->
+        </intent>
+    </queries>
+
 
    <application
-        android:label="wmc_test"
+        android:label="Dormitory Clicker"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

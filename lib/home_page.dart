@@ -10,6 +10,8 @@ import 'dorm_data.dart';
 import 'user_info.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
+import 'dart:io' show Platform;
+import 'package:url_launcher/url_launcher.dart';
 
 class WeatherData {
   static List<Map<String, dynamic>> weathers = [];
@@ -33,7 +35,7 @@ class _HomePageState extends State<HomePage> {
     Map data = {'userId': userInfo.getUserId()};
     var body = json.encode(data);
 
-    http.Response res = await http.post(Uri.parse('http://dormitoryclicker.shop:8080/dormitory'),
+    http.Response res = await http.post(Uri.parse('https://www.dormitoryclicker.shop/dormitory'),
         headers: {'Content-Type': "application/json"},
         body: body
     );
@@ -60,7 +62,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<String> getWeatherData() async {
     http.Response res = await http.get(Uri.parse(
-        'http://dormitoryclicker.shop:8080/api/weather'
+        'https://www.dormitoryclicker.shop/api/weather'
     ));
 
     //여기서는 응답이 객체로 변환된 res 변수를 사용할 수 있다.
@@ -123,6 +125,18 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     userInfo = Provider.of<UserInfo>(context, listen: true);
     dormData = Provider.of<DormData>(context, listen: true);
+
+    bool? isWeb;
+    try {
+      if (Platform.isAndroid || Platform.isIOS) {
+        isWeb = false;
+      } else {
+        isWeb = true;
+      }
+    } catch (e) {
+      isWeb = true;
+    }
+
 
     String getMachineName(int index) {
       String machineNum = dormData.machines[index]['machineNum'];
@@ -190,8 +204,34 @@ class _HomePageState extends State<HomePage> {
               ),
               ListTile(
                 title: const Text("문의/건의"),
-                onTap: () {
-                  _sendEmail();
+                onTap: () async {
+                  if(isWeb == true) {
+                    final url = Uri(
+                      scheme: 'mailto',
+                      path: 'gmgpgk1713@gmail.com',
+                      query: 'subject=기숙사 클리커 문의&body=[문의내용]\n',
+                    );
+                    if (await canLaunchUrl(url)) {
+                      launchUrl(url);
+                    }
+                    else {
+                      print("Can't launch $url");
+                    }
+                  }
+                  else {
+                    //_sendEmail();
+                    final url = Uri(
+                      scheme: 'mailto',
+                      path: 'gmgpgk1713@gmail.com',
+                      query: 'subject=기숙사 클리커 문의&body=[문의내용]\n',
+                    );
+                    if (await canLaunchUrl(url)) {
+                      launchUrl(url);
+                    }
+                    else {
+                      print("Can't launch $url");
+                    }
+                  }
                 },
                 trailing: const Icon(Icons.arrow_forward_ios),
               ),

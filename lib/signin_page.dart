@@ -17,7 +17,7 @@ class _SignInPageState extends State<SignInPage> {
   final _formKey = GlobalKey<FormState>();
 
   Future<String> sendSignInData(String userId, String password) async {
-    http.Response res = await http.post(Uri.parse('http://dormitoryclicker.shop:8080/signin'),
+    http.Response res = await http.post(Uri.parse('https://www.dormitoryclicker.shop/signin'),
         body: {
           'userId': userId,
           'password': password

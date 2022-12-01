@@ -55,7 +55,7 @@ class _ReservePageState extends State<ReservePage> {
 
   Future<String> getReservationData(String dormitory, String machineNum) async {
     http.Response res = await http.get(Uri.parse(
-        'http://dormitoryclicker.shop:8080/reservation?dormitory=$dormitory&machineNum=$machineNum'
+        'https://www.dormitoryclicker.shop/reservation?dormitory=$dormitory&machineNum=$machineNum'
     ));
 
     String jsonData = res.body;
@@ -72,7 +72,7 @@ class _ReservePageState extends State<ReservePage> {
   }
 
   Future<String> putReservationData(String userId, String dormitory, String machineNum, DateTime startDatetime, DateTime endDatetime) async {
-    http.Response res = await http.post(Uri.parse('http://dormitoryclicker.shop:8080/reservation'),
+    http.Response res = await http.post(Uri.parse('https://www.dormitoryclicker.shop/reservation'),
         body: {
           'userId': userId,
           'dormitory': dormitory,
