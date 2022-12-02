@@ -13,7 +13,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
 
   Future<String> sendSignUpData(String userId, String password, String userName, String dormitory) async {
-    http.Response res = await http.post(Uri.parse('https://www.dormitoryclicker.shop/signup'),
+    http.Response res = await http.post(Uri.parse('http://dormitoryclicker.shop:8080/signup'),
         body: {
           'userId': userId,
           'password': password,

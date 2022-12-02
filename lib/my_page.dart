@@ -2,7 +2,6 @@ import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:timer_builder/timer_builder.dart';
-import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -13,9 +12,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:intl/intl.dart';
 import 'dart:io' show Platform;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyPage extends StatefulWidget {
   const MyPage({Key? key}) : super(key: key);
@@ -34,7 +33,7 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
     Map data = {'userId': userId};
     var body = json.encode(data);
 
-    http.Response res = await http.post(Uri.parse('https://www.dormitoryclicker.shop/user'),
+    http.Response res = await http.post(Uri.parse('http://dormitoryclicker.shop:8080/user'),
         headers: {'Content-Type': "application/json"},
         body: body
     );
@@ -67,7 +66,7 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
   }
 
   Future<String> cancelReservation(String userId) async {
-    http.Response res = await http.post(Uri.parse('https://www.dormitoryclicker.shop/cancel'),
+    http.Response res = await http.post(Uri.parse('http://dormitoryclicker.shop:8080/cancel'),
         body: {
           'userId': userId
         }
@@ -83,40 +82,6 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
       return "500: Server Unavailable";
     } else {
       return "success";
-    }
-  }
-
-  //*************** 이메일 보내기 [ email_sender ] *******************
-
-  void _sendEmail() async {
-    final Email email = Email(
-      body: '[사용 문의]\n',
-      subject: '[세탁기 클리커 사용 문의]',
-      recipients: ['gmgpgk1713@gmail.com'],
-      cc: ['gmgpgk1713@gmail.com'],
-      bcc: ['gmgpgk1713@gmail.com'],
-      attachmentPaths: [],
-      isHTML: false,
-    );
-
-    try {
-      await FlutterEmailSender.send(email);
-    } catch(error) {
-      String title = "기본 메일 앱을 사용할 수 없기 때문에 앱에서 바로 문의를 전송하기 어려운 상황입니다.";
-      //String message = "";
-      return showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(title),
-          actions: [
-            TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('확인')),
-          ],
-        ),
-      );
     }
   }
 
@@ -160,14 +125,14 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
     tz.initializeTimeZones();
     final String? timeZoneName = await FlutterNativeTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(timeZoneName!));
-  } // 위 코드를 사용하여 [현재 단말기의 현재 시간을 등록]합니다.
+  } // 위 코드를 사용하여 [현재 단말기의 현재 시간을 등록].
 
 
   // 또한, 다음과 같이 [iOS의 메시지 권한 요청을 초기화]
   // iOS의 초기화시, 권한 요청 메시지가 바로 표시되지 않도록 하기 위해 모든 값을 false로 설정
   //
   // Android는 ic_notification을 사용하여 [푸시 메시지의 아이콘을 설정].
-  // 해당 아이콘은 drawable* 폴더에 저장합니다.
+  // 해당 아이콘은 drawable* 폴더에 저장.
   Future<void> _initializeNotification() async {
     // ios
     const DarwinInitializationSettings initializationSettingsIOS =
@@ -219,7 +184,7 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
     required int minutes,
     required message,
   }) async {
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    //final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     tz.TZDateTime scheduledDate = tz.TZDateTime(
       tz.local,
       year,
@@ -258,26 +223,53 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
     );
   }
 
+  // local_notification을 작동하기 위한 인자 변수
   int? timeYear;
   int? timeMonth;
   int? timeDay;
   int? timeHour;
   int? timeMin;
-
+  // 예약된 endTime을 담아두는 변수
   DateTime? dateTime;
 
+  //************[ Shared Preferences ]*********************************
+  void _storeInfo(String userId, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool('${userId}_settedAlarm', value);
+  }
 
-  //****************************************************************************
+  void _loadInfo(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userAlarm = prefs.getBool('${userId}_settedAlarm') ?? false;
+
+    isSettedAlarm = userAlarm;
+  }
+
+  void _delInfo(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove('${userId}_settedAlarm');
+  }
 
 
+  //**************************************************
 
-  bool isSettedAlarm = false;
+  bool isSettedAlarm = false;    // 알람을 지정했는지의 변수
 
   var userInfo;
 
   @override
   Widget build(BuildContext context) {
     userInfo = Provider.of<UserInfo>(context, listen: true);
+
+    print(isSettedAlarm);
+
+    _loadInfo(userInfo.getUserId());
+
+    print(isSettedAlarm);
+    print(0);
+
+
+
 
     bool? isWeb;
     try {
@@ -289,7 +281,6 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
     } catch (e) {
       isWeb = true;
     }
-
 
 
     String calculateTimeDifference(
@@ -346,32 +337,35 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
             ListTile(
               title: const Text("문의/건의"),
               onTap: () async {
-                if(isWeb == true) {
-                  final url = Uri(
-                    scheme: 'mailto',
-                    path: 'gmgpgk1713@gmail.com',
-                    query: 'subject=기숙사 클리커 문의&body=[문의내용]\n',
-                  );
-                  if (await canLaunchUrl(url)) {
-                    launchUrl(url);
-                  }
-                  else {
-                    print("Can't launch $url");
-                  }
+                final url = Uri(
+                  scheme: 'mailto',
+                  path: 'gmgpgk1713@gmail.com',
+                  query: 'subject=기숙사 클리커 문의&body=[문의내용]\n',
+                );
+                if (await canLaunchUrl(url)) {
+                  launchUrl(url);
                 }
                 else {
-                  //_sendEmail();
-                  final url = Uri(
-                    scheme: 'mailto',
-                    path: 'gmgpgk1713@gmail.com',
-                    query: 'subject=기숙사 클리커 문의&body=[문의내용]\n',
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          content: const Text('메일 앱에 접근할 수 없습니다.\n'
+                              '아래의 연락처로 연락주세요.\n\n'
+                              '[Email: dormiWork@kumoh.ac.kr]'),
+                          actions: [
+                            Center(
+                                child: ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text("확인")
+                                )
+                            )
+                          ],
+                        );
+                      }
                   );
-                  if (await canLaunchUrl(url)) {
-                    launchUrl(url);
-                  }
-                  else {
-                    print("Can't launch $url");
-                  }
                 }
               },
               trailing: const Icon(Icons.arrow_forward_ios),
@@ -570,7 +564,11 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
                                                 child: OutlinedButton(
                                                   onPressed: () async {
                                                     if (isSettedAlarm == true) {
-                                                      isSettedAlarm = false;    // 예약이 취소된다면 기존 알림도 없어지도록 하기
+                                                      //isSettedAlarm = false;    // 예약이 취소된다면 기존 알림도 없어지도록 하기
+                                                      _storeInfo(userInfo.getUserId(), false);
+                                                      _loadInfo(userInfo.getUserId());
+                                                      print(isSettedAlarm);
+                                                      print('1');
                                                       await _flutterLocalNotificationsPlugin.cancel(0);    // [메시지 등록 취소]
                                                     }
                                                     setState(()  {
@@ -708,9 +706,9 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
           }
         },
       ),
-      floatingActionButton: Visibility(
-          visible: (userInfo.getCanReservation() == true) ?
-          false : true,
+
+      floatingActionButton: Visibility( // 예약을 아직 안했거나, 웹환경에서는 알람버튼 확인 불가
+          visible: (userInfo.getCanReservation() == true || isWeb == true) ? false : true,
           child: FloatingActionButton(
               child: (isSettedAlarm == false) ? const Icon(Icons.notifications) : getNotIcon(const Icon(Icons.notifications)),
               onPressed: (){
@@ -728,12 +726,17 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
                                   onPressed: () async {
                                     if (dateTime != null) {   // 에약정보가 있다면
                                       setState(() {   // 예약정보가 있음 & 알림이 설정되어 있지 않다면?
-                                        isSettedAlarm = true;
+                                        //isSettedAlarm = true;
+                                        _storeInfo(userInfo.getUserId(), true);
+                                        _loadInfo(userInfo.getUserId());
+                                        //print(isSettedAlarm);
                                       });
+                                      print(isSettedAlarm);
+                                      print('1');
                                       await _cancelNotification();    // [메시지 등록 취소]
                                       await _requestPermissions();    // [권한 요청]
 
-                                      final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+                                      //final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
                                       await _registerMessage(         // [메시지 등록]
                                         // 각 index에 맞게  값을 입력받음
                                         year: timeYear!,
@@ -814,8 +817,12 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
                                   onPressed: () async {
                                     setState(()  {
                                       Navigator.pop(context);
-                                      isSettedAlarm = false;
+                                      //isSettedAlarm = false;
+                                      _storeInfo(userInfo.getUserId(), false);
                                     });
+                                    _loadInfo(userInfo.getUserId());
+                                    print(isSettedAlarm);
+                                    print('1');
                                     await _flutterLocalNotificationsPlugin.cancel(0);// [메시지 등록 취소]
                                   },
                                   child: const Text('확인'),

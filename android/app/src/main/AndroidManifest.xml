@@ -19,8 +19,8 @@
     <!-- url_launcher 를 사용하기 위해 추가됨 -->
     <queries>
         <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="https" />
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
             <!--<action android:name="android.intent.action.SENDTO" />
             <data android:scheme="mailto" />-->
         </intent>
@@ -60,6 +60,8 @@
            <intent-filter>
                <action android:name="android.intent.action.BOOT_COMPLETED"/>
                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+               <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+               <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
            </intent-filter>
        </receiver>
        <!-- local notification 재부팅 및 업데이트 시에도 작동하기 위해 설정 -->

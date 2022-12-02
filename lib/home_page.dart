@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -35,7 +34,7 @@ class _HomePageState extends State<HomePage> {
     Map data = {'userId': userInfo.getUserId()};
     var body = json.encode(data);
 
-    http.Response res = await http.post(Uri.parse('https://www.dormitoryclicker.shop/dormitory'),
+    http.Response res = await http.post(Uri.parse('http://dormitoryclicker.shop:8080/dormitory'),
         headers: {'Content-Type': "application/json"},
         body: body
     );
@@ -62,7 +61,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<String> getWeatherData() async {
     http.Response res = await http.get(Uri.parse(
-        'https://www.dormitoryclicker.shop/api/weather'
+        'http://dormitoryclicker.shop:8080/api/weather'
     ));
 
     //여기서는 응답이 객체로 변환된 res 변수를 사용할 수 있다.
@@ -74,38 +73,6 @@ class _HomePageState extends State<HomePage> {
     }
 
     return 'Success';
-  }
-
-  void _sendEmail() async {
-    final Email email = Email(
-      body: '',
-      subject: '[세탁기 클리커 사용 문의]',
-      recipients: ['20180088@kumoh.ac.kr'],
-      cc: [],
-      bcc: [],
-      attachmentPaths: [],
-      isHTML: false,
-    );
-
-    try {
-      await FlutterEmailSender.send(email);
-    } catch(error) {
-      String title = "기본 메일 앱을 사용할 수 없기 때문에 앱에서 바로 문의를 전송하기 어려운 상황입니다.";
-      //String message = "";
-      return showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(title),
-          actions: [
-            TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('확인')),
-          ],
-        ),
-      );
-    }
   }
 
   var userInfo;
@@ -125,18 +92,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     userInfo = Provider.of<UserInfo>(context, listen: true);
     dormData = Provider.of<DormData>(context, listen: true);
-
-    bool? isWeb;
-    try {
-      if (Platform.isAndroid || Platform.isIOS) {
-        isWeb = false;
-      } else {
-        isWeb = true;
-      }
-    } catch (e) {
-      isWeb = true;
-    }
-
 
     String getMachineName(int index) {
       String machineNum = dormData.machines[index]['machineNum'];
@@ -205,32 +160,35 @@ class _HomePageState extends State<HomePage> {
               ListTile(
                 title: const Text("문의/건의"),
                 onTap: () async {
-                  if(isWeb == true) {
-                    final url = Uri(
-                      scheme: 'mailto',
-                      path: 'gmgpgk1713@gmail.com',
-                      query: 'subject=기숙사 클리커 문의&body=[문의내용]\n',
-                    );
-                    if (await canLaunchUrl(url)) {
-                      launchUrl(url);
-                    }
-                    else {
-                      print("Can't launch $url");
-                    }
+                  final url = Uri(
+                    scheme: 'mailto',
+                    path: 'gmgpgk1713@gmail.com',
+                    query: 'subject=기숙사 클리커 문의&body=[문의내용]\n',
+                  );
+                  if (await canLaunchUrl(url)) {
+                    launchUrl(url);
                   }
                   else {
-                    //_sendEmail();
-                    final url = Uri(
-                      scheme: 'mailto',
-                      path: 'gmgpgk1713@gmail.com',
-                      query: 'subject=기숙사 클리커 문의&body=[문의내용]\n',
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content: const Text('메일 앱에 접근할 수 없습니다.\n'
+                                '아래의 연락처로 연락주세요.\n\n'
+                                '[Email: dormiWork@kumoh.ac.kr]'),
+                            actions: [
+                              Center(
+                                  child: ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text("확인")
+                                  )
+                              )
+                            ],
+                          );
+                        }
                     );
-                    if (await canLaunchUrl(url)) {
-                      launchUrl(url);
-                    }
-                    else {
-                      print("Can't launch $url");
-                    }
                   }
                 },
                 trailing: const Icon(Icons.arrow_forward_ios),
